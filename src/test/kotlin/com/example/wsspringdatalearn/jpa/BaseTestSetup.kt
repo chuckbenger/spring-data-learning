@@ -31,7 +31,7 @@ abstract class BaseTestSetup {
     private lateinit var statistics: Statistics
 
     @BeforeEach
-    fun setup() {
+    protected open fun setup() {
         val sessionFactory = entityManagerFactory.unwrap(SessionFactory::class.java)
         statistics = sessionFactory.statistics
         statistics.clear()
@@ -39,16 +39,7 @@ abstract class BaseTestSetup {
 
     @AfterEach
     fun tearDown() {
-        println("Hibernate Statistics:")
-        println("Sessions opened: ${statistics.sessionOpenCount}")
-        println("Sessions closed: ${statistics.sessionCloseCount}")
-        println("Transactions: ${statistics.transactionCount}")
-        println("Successful Transactions: ${statistics.successfulTransactionCount}")
-        println("Queries Executed: ${statistics.queryExecutionCount}")
-        println("entityUpdateCount: ${statistics.entityUpdateCount}")
-        println("entityInsertCount: ${statistics.entityInsertCount}")
-        println("entityDeleteCount: ${statistics.entityDeleteCount}")
-        println("entityFetchCount: ${statistics.entityFetchCount}")
+        statistics.logSummary()
 
         transactionTemplate.execute {
             entityManager.createNativeQuery("DELETE FROM stock").executeUpdate()
@@ -61,6 +52,6 @@ abstract class BaseTestSetup {
         val start = System.currentTimeMillis()
         block()
         val end = System.currentTimeMillis()
-        println("Time taken: ${end - start}ms")
+        println("========= Time taken: ${end - start}ms ============")
     }
 }

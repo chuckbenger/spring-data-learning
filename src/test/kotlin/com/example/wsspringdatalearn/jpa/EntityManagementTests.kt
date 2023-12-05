@@ -34,7 +34,7 @@ class EntityManagementTests : BaseTestSetup() {
          * Detached entities can be moved to a managed state by calling persist on them.
          *
          * Calling persist doesn't automatically flush the entity to the database. It just moves it to a managed state.
-         * And then when the transaction is committed it will flush the entity to the database.
+         * And then the entity manager will flush it to the database when it needs to.
          *
          * An important thing to understand is that the entity manager is only tracking entities within a transaction.
          */

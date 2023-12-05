@@ -6,7 +6,11 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.QueryHint
 import jakarta.persistence.SequenceGenerator
+import org.hibernate.jpa.HibernateHints
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.jpa.repository.QueryHints
 import org.springframework.stereotype.Repository
 
 @Entity
@@ -35,13 +39,39 @@ class StockWithSequence(
     @Column(nullable = false)
     var name: String,
 
+    @Column(nullable = true)
+    var statistics: String? = null,
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     val id: Long? = null,
 )
 
 @Repository
-interface StockWithSequenceRepository : BaseJpaRepository<StockWithSequence, Long>
+interface StockWithSequenceRepository : BaseJpaRepository<StockWithSequence, Long> {
+    fun findByStatisticsIsNull(): List<StockWithSequence>
+
+    @Query(
+        nativeQuery = true,
+        value = """
+            SELECT 'Price Change: ' || (RANDOM() * 100) || '%, Volume: ' || (RANDOM() * 10000)
+            FROM stock_with_sequence 
+            WHERE ticker = :ticker
+        """,
+    )
+    fun calculateStatisticsNative(ticker: String): String
+
+    @Query(
+        nativeQuery = true,
+        value = """
+            SELECT 'Price Change: ' || (RANDOM() * 100) || '%, Volume: ' || (RANDOM() * 10000)
+            FROM stock_with_sequence 
+            WHERE ticker = :ticker
+        """,
+    )
+    @QueryHints(QueryHint(name = HibernateHints.HINT_FLUSH_MODE, value = "COMMIT"))
+    fun calculateStatisticsNativeHint(ticker: String): String
+}
 
 @Entity
 class StockWithSequencePool(
