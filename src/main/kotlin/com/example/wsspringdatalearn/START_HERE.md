@@ -13,3 +13,5 @@ on the getting started page diving into this learning.
 - Configuration
 - Persisting Entities
 - Defining Query Methods
+
+Under the tests directory, you will find tests that demonstrate some learnings and concepts
