@@ -29,7 +29,7 @@ class Stock(
 @Repository
 interface StockRepository : BaseJpaRepository<Stock, Long> {
     fun findByTicker(ticket: String): Stock?
-
+    fun findByName(name: String): List<Stock>
     fun findByTickerIn(tickers: List<String>): List<StockNameOnly>
 
     interface StockNameOnly {

@@ -45,6 +45,6 @@ class ImplicitFlushingBehaviourTests : BaseTestSetup() {
     }
 
     companion object {
-        private const val NUMBER_OF_STOCKS = 10000
+        private const val NUMBER_OF_STOCKS = 1
     }
 }

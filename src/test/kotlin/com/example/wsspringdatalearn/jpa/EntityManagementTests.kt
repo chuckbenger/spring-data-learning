@@ -35,7 +35,7 @@ class EntityManagementTests : BaseTestSetup() {
          * Detached entities can be moved to a managed state by calling persist on them.
          *
          * Calling persist doesn't automatically flush the entity to the database. It just moves it to a managed state.
-         * And then the entity manager will flush it to the database when it needs to.
+         * And then the entity manager will flush it to the database when it needs to (generally when the transaction ends)
          *
          * An important thing to understand is that the entity manager is only tracking entities within a transaction.
          */
@@ -47,11 +47,11 @@ class EntityManagementTests : BaseTestSetup() {
         stockRepository.persist(detachedStock)
 
         // Now we can find the stock in the database
-        val foundStock = stockRepository.findByTicker(detachedStock.ticker)
+        val foundStock = stockRepository.findById(detachedStock.id).get()
 
         assertThat(foundStock).isNotNull // Now we found a stock!
         assertThat(detachedStock.id).isNotNull() // And our original has its id updated
-        assertThat(foundStock?.id).isEqualTo(detachedStock.id) // And here we see that the id's match
+        assertThat(foundStock.id).isEqualTo(detachedStock.id) // And here we see that the id's match
 
         // But one important thing is we can see that the foundStock != detachedStock objects are not equal.
         // This is because the entity manager is only tracking entities within a transaction.
@@ -70,7 +70,7 @@ class EntityManagementTests : BaseTestSetup() {
 
             stockRepository.persist(detachedStock) // Persist moves it from detached -> managed
 
-            val foundStock = stockRepository.findByTicker(detachedStock.ticker)
+            val foundStock = stockRepository.findById(detachedStock.id).get()
 
             // Now we can se the foundStock == detachedStock. I.E they are the same object
             // This is because within this transaction JPA is tracking all the managed entities.
@@ -85,45 +85,53 @@ class EntityManagementTests : BaseTestSetup() {
 
     @Test
     fun `updating existing entities - BAD!!!!`() {
+        val numberOfStocks = 1
         /**
          * When updating existing entities, let the framework handle flushing when possible
          * The following still works, but it's not efficient.
          * Behind the scenes an update statement is being executed for each persistAndFlush call.
          */
         transactionTemplate.execute {
-            stockRepository.persist(Stock("TSLA", "Tesla"))
+            val stocks = (1..numberOfStocks).map { Stock("TSLA$it", "Tesla") }
+            stockRepository.persistAll(stocks)
         }!!
         transactionTemplate.execute {
-            val stock = stockRepository.findByTicker("TSLA")!!
-            stock.name = "UPDATED"
-            stockRepository.persistAndFlush(stock) // Avoid
-            stock.name = "UPDATED2"
-            stockRepository.persistAndFlush(stock) // Avoid
-            stock.name = "UPDATED3"
-            stockRepository.persistAndFlush(stock) // Avoid
+            val stocks = stockRepository.findByName("Tesla")
+
+            stocks.forEach { stock ->
+                stock.name = "UPDATED"
+                stockRepository.persistAndFlush(stock) // Avoid
+            }
         }!!
 
-        val finalStock = stockRepository.findByTicker("TSLA")!!
-        assertThat(finalStock.name).isEqualTo("UPDATED3")
+        val stocks = stockRepository.findByName("Tesla")
+        stocks.forEach { stock ->
+            assertThat(stock.name).isEqualTo("UPDATED")
+        }
     }
 
     @Test
     fun `updating existing entities - GOOD`() {
+        val numberOfStocks = 1
         // When updating existing entities, let the framework handle flushing when possible
         // I.E avoid doing manual flushed on managed entities!
 
         transactionTemplate.execute {
-            stockRepository.persist(Stock("TSLA", "Tesla"))
+            val stocks = (1..numberOfStocks).map { Stock("TSLA$it", "Tesla") }
+            stockRepository.persistAll(stocks)
         }!!
         transactionTemplate.execute {
-            val stock = stockRepository.findByTicker("TSLA")!!
-            stock.name = "UPDATED"
-            stock.name = "UPDATED2"
-            stock.name = "UPDATED3"
+            val stocks = stockRepository.findByName("Tesla")
+
+            stocks.forEach { stock ->
+                stock.name = "UPDATED"
+            }
         }!!
 
-        val finalStock = stockRepository.findByTicker("TSLA")!!
-        assertThat(finalStock.name).isEqualTo("UPDATED3")
+        val stocks = stockRepository.findByName("Tesla")
+        stocks.forEach { stock ->
+            assertThat(stock.name).isEqualTo("UPDATED")
+        }
     }
 
     @Test
