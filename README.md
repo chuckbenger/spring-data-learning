@@ -12,7 +12,7 @@ JPA [here](https://docs.spring.io/spring-data/jpa/reference/jpa/getting-started.
 examples.
 
 While you don't need to read all of this right off the bat, I would read the following sections
-on the getting started page diving into this learning.
+on the getting started page before diving into this learning.
 
 - Core Concepts
 - Defining Repository Interfaces
