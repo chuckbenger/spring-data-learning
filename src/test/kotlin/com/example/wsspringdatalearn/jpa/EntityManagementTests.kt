@@ -2,6 +2,7 @@ package com.example.wsspringdatalearn.jpa
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
@@ -75,6 +76,7 @@ class EntityManagementTests : BaseTestSetup() {
             // This is because within this transaction JPA is tracking all the managed entities.
             // when we called persist our detachedStock became a managed entity.
             // And then when we go and query for the stock it's able to just pull it straight the entity manager
+            // If you want to see what's happening place some breakpoints in SessionImpl to see what's happening
             assertThat(foundStock).isEqualTo(detachedStock)
             assertThat(entityManager.contains(detachedStock)).isTrue()
             assertThat(entityManager.contains(foundStock)).isTrue()
@@ -122,5 +124,29 @@ class EntityManagementTests : BaseTestSetup() {
 
         val finalStock = stockRepository.findByTicker("TSLA")!!
         assertThat(finalStock.name).isEqualTo("UPDATED3")
+    }
+
+    @Test
+    fun `projections are not in the persistence context and are read only`() {
+        transactionTemplate.execute {
+            stockRepository.persistAll(listOf(Stock("TSLA", "Tesla"), Stock("TSLA2", "Tesla")))
+        }!!
+
+        // Projections are not in the persistence context and are read only
+        // They allow you to limit the amount of data you are pulling back from the database
+        // And they are not tracked by the entity manager
+        // This can be useful for read only data, and also batching if you want to pull back the
+        // ids for many entities and then use them to pull back the full entities later through
+        // the Entity which is tracked by the entity manager
+
+        // The below tries to update a value on a projection and you can see UnsupportedOperationException is thrown
+        assertThrows<UnsupportedOperationException> {
+            transactionTemplate.execute {
+                val stocks = stockRepository.findByTickerIn(listOf("TSLA", "TSLA2"))
+                stocks.forEach { stock ->
+                    stock.name = "UPDATED"
+                }
+            }
+        }
     }
 }

@@ -29,6 +29,12 @@ class Stock(
 @Repository
 interface StockRepository : BaseJpaRepository<Stock, Long> {
     fun findByTicker(ticket: String): Stock?
+
+    fun findByTickerIn(tickers: List<String>): List<StockNameOnly>
+
+    interface StockNameOnly {
+        var name: String
+    }
 }
 
 @Entity
