@@ -5,17 +5,18 @@ spring:
         in-tests: false
   jpa:
     hibernate:
+      # don't use this on prod lol. It will create table from your entities at startup and drop them during shutdown
       ddl-auto: create-drop
     properties:
       hibernate:
-        generate_statistics: false
+        generate_statistics: true
         format_sql: false
 logging:
   level:
     org:
       hibernate:
-        SQL: info
+        SQL: trace
         type:
           descriptor:
             sql:
-              BasicBinder: info
+              BasicBinder: trace

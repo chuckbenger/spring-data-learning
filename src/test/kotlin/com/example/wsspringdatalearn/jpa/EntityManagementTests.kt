@@ -85,7 +85,7 @@ class EntityManagementTests : BaseTestSetup() {
 
     @Test
     fun `updating existing entities - BAD!!!!`() {
-        val numberOfStocks = 1
+        val numberOfStocks = 1000
         /**
          * When updating existing entities, let the framework handle flushing when possible
          * The following still works, but it's not efficient.
@@ -112,7 +112,7 @@ class EntityManagementTests : BaseTestSetup() {
 
     @Test
     fun `updating existing entities - GOOD`() {
-        val numberOfStocks = 1
+        val numberOfStocks = 1000
         // When updating existing entities, let the framework handle flushing when possible
         // I.E avoid doing manual flushed on managed entities!
 
