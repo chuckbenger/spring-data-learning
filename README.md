@@ -39,6 +39,8 @@ Under the tests folder there are several test classes that can be run to see the
 
 #### Configuration
 
+Updating
+
 If you want to see the SQL that Hibernate is generating you can enable the following property in the
 `application.yml` file
 
